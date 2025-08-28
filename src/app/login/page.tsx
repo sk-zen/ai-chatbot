@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const handleLogin = async () => {
@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      window.location.href = "/"
+      window.location.href = '/'
     }
   }
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      window.location.href = "/"
+      window.location.href = '/'
     }
   }
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-200"
+              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
               placeholder="Enter your email"
             />
           </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-200"
+              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
               placeholder="Enter your password"
             />
           </div>
@@ -80,14 +80,14 @@ export default function LoginPage() {
           <div className="space-y-3 pt-2">
             <Button
               onClick={handleLogin}
-              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-slate-900/25"
+              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-slate-900/25 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
               Sign in
             </Button>
             <Button
               onClick={handleSignUp}
               variant="outline"
-              className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium rounded-lg transition-all duration-200 bg-transparent"
+              className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium rounded-lg transition-all duration-300 bg-transparent hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
               Create account
             </Button>

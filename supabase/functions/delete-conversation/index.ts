@@ -17,25 +17,36 @@ serve(async (req) => {
       })
     }
 
-    const { user_id } = await req.json()
+    const { conversation_id } = await req.json()
     const supabase = createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY,
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
     )
 
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('id, created_at, title') // Added title
-      .eq('user_id', user_id)
-      .order('created_at', { ascending: false })
+    // Delete messages associated with the conversation
+    const { error: deleteMessagesError } = await supabase
+      .from('messages')
+      .delete()
+      .eq('conversation_id', conversation_id)
 
-    if (error) {
-      throw error
+    if (deleteMessagesError) {
+      throw deleteMessagesError
     }
 
-    return new Response(JSON.stringify(data), {
+    // Delete the conversation itself
+    const { error: deleteConversationError } = await supabase
+      .from('conversations')
+      .delete()
+      .eq('id', conversation_id)
+
+    if (deleteConversationError) {
+      throw deleteConversationError
+    }
+
+    return new Response(JSON.stringify({ message: 'Conversation deleted successfully' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

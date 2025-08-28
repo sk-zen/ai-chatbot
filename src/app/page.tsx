@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, FormEvent, useCallback } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { Sidebar } from '@/components/sidebar'
 import { Chat } from '@/components/chat'
+// Removed Menu and Button imports as they will be in Chat's Header
 
 interface Message {
   role: 'user' | 'model';
@@ -14,6 +15,7 @@ interface Message {
 interface Conversation {
   id: string;
   created_at: string;
+  title?: string;
 }
 
 export default function Home() {
@@ -23,8 +25,9 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // New state for sidebar collapse
 
-  const handleNewChat = async () => {
+  const handleNewChat = useCallback(async () => {
     if (!user) return
     const { data, error } = await supabase.functions.invoke('create-conversation', {
       body: { user_id: user.id },
@@ -32,10 +35,33 @@ export default function Home() {
     if (error) {
       console.error('Error creating conversation:', error)
     } else {
-      setConversations([data, ...conversations])
+      setConversations((prev) => [data, ...prev])
       setCurrentConversationId(data.id)
     }
-  }
+  }, [user])
+
+  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+    if (!user) return
+    const { error } = await supabase.functions.invoke('delete-conversation', {
+      body: { conversation_id: conversationId },
+    })
+    if (error) {
+      console.error('Error deleting conversation:', error)
+    } else {
+      // Remove the deleted conversation from the state
+      const updatedConversations = conversations.filter(
+        (conv) => conv.id !== conversationId
+      )
+      setConversations(updatedConversations)
+
+      // If the deleted conversation was the current one, switch to the latest or create new
+      if (currentConversationId === conversationId) {
+        if (updatedConversations.length > 0) {
+          setCurrentConversationId(updatedConversations[0].id)
+        }
+      }
+    }
+  }, [user, conversations, currentConversationId, handleNewChat])
 
   useEffect(() => {
     const getUser = async () => {
@@ -130,13 +156,17 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen p-6 bg-gray-100"> {/* Increased padding, changed bg-gray-50 to bg-gray-100 */}
+    <div className="flex h-screen p-6 bg-gray-100">
       <Sidebar
         conversations={conversations}
         onNewChat={handleNewChat}
         onSelectConversation={handleSelectConversation}
+        onDeleteConversation={handleDeleteConversation}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed} // Pass setIsCollapsed to Sidebar
       />
-      <div className="flex-1 ml-6"> {/* Increased ml-4 to ml-6 */}
+      <div className={`flex flex-col flex-1 ml-6 transition-all duration-300 ${isSidebarCollapsed ? 'ml-0' : 'ml-6'}`}>
+        {/* Removed toggle button and title from here */}
         <Chat
           messages={messages}
           input={input}
@@ -144,6 +174,8 @@ export default function Home() {
           loading={loading}
           user={user}
           handleSubmit={handleSubmit}
+          isSidebarCollapsed={isSidebarCollapsed} // Pass isSidebarCollapsed to Chat
+          setIsSidebarCollapsed={setIsSidebarCollapsed} // Pass setIsSidebarCollapsed to Chat
         />
       </div>
     </div>

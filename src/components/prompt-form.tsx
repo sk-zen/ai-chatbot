@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import type { FormEvent } from "react"
 import { Input } from "@/components/ui/input"
@@ -31,7 +31,7 @@ export function PromptForm({ input, setInput, handleSubmit, loading }: PromptFor
       <Button
         type="submit"
         disabled={loading || !input.trim()}
-        className="h-12 w-12 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:hover:bg-slate-300 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 border-0 flex-shrink-0"
+        className="h-12 w-12 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:hover:bg-slate-300 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 border-0 flex-shrink-0 cursor-pointer" // Added cursor-pointer
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
       </Button>

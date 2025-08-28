@@ -36,7 +36,7 @@ serve(async (req) => {
 
     // Insert bot's first message
     const { error: messageError } = await supabase.from('messages').insert([
-      { conversation_id: conversationData.id, role: 'model', content: 'Hi. How may I help you?' },
+      { conversation_id: conversationData.id, role: 'model', content: 'Hi. How may I help you?', user_id: user_id }, // Added user_id
     ])
 
     if (messageError) {
