@@ -2,35 +2,68 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
+import { User } from '@supabase/supabase-js'
+import { Sidebar } from '@/components/sidebar'
+import { Chat } from '@/components/chat'
 
 interface Message {
   role: 'user' | 'model';
   content: string;
 }
 
+interface Conversation {
+  id: string;
+  created_at: string;
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [sessionId, setSessionId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
   useEffect(() => {
-    let currentSessionId = localStorage.getItem('chat_session_id')
-    if (!currentSessionId) {
-      currentSessionId = uuidv4()
-      localStorage.setItem('chat_session_id', currentSessionId)
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+      } else {
+        window.location.href = '/login'
+      }
     }
-    setSessionId(currentSessionId)
+    getUser()
   }, [])
 
   useEffect(() => {
-    if (sessionId) {
+    if (user) {
+      const fetchConversations = async () => {
+        const { data, error } = await supabase.functions.invoke('get-conversations', {
+          body: { user_id: user.id },
+        })
+        if (error) {
+          console.error('Error fetching conversations:', error)
+        } else {
+          setConversations(data)
+          if (data.length > 0) {
+            setCurrentConversationId(data[0].id)
+          } else {
+            handleNewChat()
+          }
+        }
+      }
+      fetchConversations()
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (currentConversationId) {
       const fetchMessages = async () => {
         const { data, error } = await supabase
           .from('messages')
           .select('role, content')
-          .eq('session_id', sessionId)
+          .eq('conversation_id', currentConversationId)
           .order('created_at', { ascending: true })
 
         if (error) {
@@ -41,11 +74,29 @@ export default function Home() {
       }
       fetchMessages()
     }
-  }, [sessionId])
+  }
+  , [currentConversationId])
+
+  const handleNewChat = async () => {
+    if (!user) return
+    const { data, error } = await supabase.functions.invoke('create-conversation', {
+      body: { user_id: user.id },
+    })
+    if (error) {
+      console.error('Error creating conversation:', error)
+    } else {
+      setConversations([data, ...conversations])
+      setCurrentConversationId(data.id)
+    }
+  }
+
+  const handleSelectConversation = (conversationId: string) => {
+    setCurrentConversationId(conversationId)
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || !currentConversationId) return
 
     const userMessage: Message = { role: 'user', content: input }
     setMessages((prev) => [...prev, userMessage])
@@ -54,7 +105,7 @@ export default function Home() {
 
     try {
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { session_id: sessionId, message: input },
+        body: { conversation_id: currentConversationId, message: input },
       })
 
       if (error) {
@@ -72,37 +123,26 @@ export default function Home() {
     }
   }
 
+  if (!user) {
+    return null // or a loading spinner
+  }
+
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      <div className="flex-grow p-6 overflow-y-auto">
-        <div className="space-y-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`px-4 py-2 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}>
-                {msg.content}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="px-4 py-2 rounded-lg bg-gray-300 text-black">...</div>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="p-4 bg-white border-t">
-        <form onSubmit={handleSubmit} className="flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-grow px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your message..."
-          />
-          <button type="submit" className="ml-4 px-6 py-2 bg-blue-500 text-white rounded-full font-semibold" disabled={loading}>
-            Send
-          </button>
-        </form>
+    <div className="flex h-screen p-6 bg-gray-100"> {/* Increased padding, changed bg-gray-50 to bg-gray-100 */}
+      <Sidebar
+        conversations={conversations}
+        onNewChat={handleNewChat}
+        onSelectConversation={handleSelectConversation}
+      />
+      <div className="flex-1 ml-6"> {/* Increased ml-4 to ml-6 */}
+        <Chat
+          messages={messages}
+          input={input}
+          setInput={setInput}
+          loading={loading}
+          user={user}
+          handleSubmit={handleSubmit}
+        />
       </div>
     </div>
   )
