@@ -3,33 +3,48 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai'
 import { corsHeaders } from '../_shared/cors.ts'
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders, status: 200 })
   }
 
   try {
-    const { session_id, message } = await req.json()
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Missing GEMINI_API_KEY' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
+
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return new Response(JSON.stringify({ error: 'Missing Supabase environment variables' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+
+    const { conversation_id, message } = await req.json()
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
     )
 
     // 1. Save the user's message
     await supabase.from('messages').insert([
-      { session_id, role: 'user', content: message },
+      { conversation_id, role: 'user', content: message },
     ])
 
     // 2. Get the conversation history
     const { data: history, error: historyError } = await supabase
       .from('messages')
       .select('role, content')
-      .eq('session_id', session_id)
+      .eq('conversation_id', conversation_id)
       .order('created_at', { ascending: true })
 
     if (historyError) {
@@ -53,7 +68,7 @@ serve(async (req) => {
 
     // 3. Save the model's response
     await supabase.from('messages').insert([
-      { session_id, role: 'model', content: text },
+      { conversation_id, role: 'model', content: text },
     ])
 
     return new Response(JSON.stringify({ text }), {
