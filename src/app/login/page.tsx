@@ -6,32 +6,36 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import Link from "next/link" // Import Link
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null) // New state for success messages
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
+    setError(null); // Clear previous errors
+    setMessage(null); // Clear previous messages
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ // Capture data
       email,
       password,
     })
-    if (error) {
-      setError(error.message)
-    } else {
-      window.location.href = '/'
+    if (loginError) {
+      if (loginError.message.includes('Email not confirmed')) { // Specific check for unconfirmed email
+        setError('Please confirm your email address before logging in.');
+      } else if (loginError.message.includes('Invalid login credentials')) { // Specific check for email not found
+        setError('Invalid email or password. Please check your credentials.');
+      }
+      else {
+        setError(loginError.message)
+      }
+    } else if (data.user && !data.user.email_confirmed_at) { // Check if user exists but email not confirmed
+      setError('Please confirm your email address before logging in.');
+      // Optionally, you might want to sign out the user if they were partially signed in
+      await supabase.auth.signOut();
     }
-  }
-
-  const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-    if (error) {
-      setError(error.message)
-    } else {
+    else {
       window.location.href = '/'
     }
   }
@@ -76,21 +80,27 @@ export default function LoginPage() {
               <p className="text-red-700 text-sm text-center">{error}</p>
             </div>
           )}
+          {message && ( // Display success message
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-green-700 text-sm text-center">{message}</p>
+            </div>
+          )}
 
           <div className="space-y-3 pt-2">
             <Button
               onClick={handleLogin}
-              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-slate-900/25 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-slate-900/25 cursor-pointer"
             >
               Sign in
             </Button>
-            <Button
-              onClick={handleSignUp}
-              variant="outline"
-              className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium rounded-lg transition-all duration-300 bg-transparent hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-            >
-              Create account
-            </Button>
+            <div className="text-center"> {/* Added div for link */}
+              <p className="text-sm text-slate-600">
+                Don't have an account?{" "}
+                <Link href="/signup" className="text-slate-900 hover:text-slate-700 font-medium transition-colors cursor-pointer">
+                  Sign up
+                </Link>
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
