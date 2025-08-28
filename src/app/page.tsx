@@ -166,7 +166,6 @@ export default function Home() {
         setIsCollapsed={setIsSidebarCollapsed} // Pass setIsCollapsed to Sidebar
       />
       <div className={`flex flex-col flex-1 ml-6 transition-all duration-300 ${isSidebarCollapsed ? 'ml-0' : 'ml-6'}`}>
-        {/* Removed toggle button and title from here */}
         <Chat
           messages={messages}
           input={input}
