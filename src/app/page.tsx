@@ -24,6 +24,19 @@ export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
+  const handleNewChat = async () => {
+    if (!user) return
+    const { data, error } = await supabase.functions.invoke('create-conversation', {
+      body: { user_id: user.id },
+    })
+    if (error) {
+      console.error('Error creating conversation:', error)
+    } else {
+      setConversations([data, ...conversations])
+      setCurrentConversationId(data.id)
+    }
+  }
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -55,7 +68,7 @@ export default function Home() {
       }
       fetchConversations()
     }
-  }, [user])
+  }, [user, handleNewChat])
 
   useEffect(() => {
     if (currentConversationId) {
@@ -77,18 +90,7 @@ export default function Home() {
   }
   , [currentConversationId])
 
-  const handleNewChat = async () => {
-    if (!user) return
-    const { data, error } = await supabase.functions.invoke('create-conversation', {
-      body: { user_id: user.id },
-    })
-    if (error) {
-      console.error('Error creating conversation:', error)
-    } else {
-      setConversations([data, ...conversations])
-      setCurrentConversationId(data.id)
-    }
-  }
+
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId)
