@@ -1,15 +1,15 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const handleLogin = async () => {
@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      window.location.href = '/'
+      window.location.href = "/"
     }
   }
 
@@ -32,44 +32,64 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      window.location.href = '/'
+      window.location.href = "/"
     }
   }
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100"> {/* Consistent background */}
-      <Card className="w-[400px] p-6 rounded-lg shadow-lg"> {/* Added p-6, rounded-lg, shadow-lg */}
-        <CardHeader className="text-center mb-6"> {/* Added text-center and mb-6 */}
-          <CardTitle className="text-3xl font-bold">Welcome</CardTitle> {/* Increased font size and weight */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-0 shadow-2xl shadow-slate-200/50">
+        <CardHeader className="space-y-2 pb-8 pt-8">
+          <CardTitle className="text-3xl font-bold text-center text-slate-900 text-balance">Welcome back</CardTitle>
+          <p className="text-slate-600 text-center text-sm">Sign in to your account to continue</p>
         </CardHeader>
-        <CardContent className="space-y-6"> {/* Increased space-y */}
+        <CardContent className="space-y-6 px-8 pb-8">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">Email</Label> {/* Refined label styling */}
+            <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+              Email address
+            </Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" // Refined input styling
+              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-200"
+              placeholder="Enter your email"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">Password</Label> {/* Refined label styling */}
+            <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" // Refined input styling
+              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-200"
+              placeholder="Enter your password"
             />
           </div>
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>} {/* Refined error styling */}
-          <div className="flex flex-col space-y-3"> {/* Changed to flex-col and space-y-3 */}
-            <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">
-              Login
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm text-center">{error}</p>
+            </div>
+          )}
+
+          <div className="space-y-3 pt-2">
+            <Button
+              onClick={handleLogin}
+              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-slate-900/25"
+            >
+              Sign in
             </Button>
-            <Button onClick={handleSignUp} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md transition-colors duration-200" variant="outline"> {/* Refined signup button styling */}
-              Sign Up
+            <Button
+              onClick={handleSignUp}
+              variant="outline"
+              className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium rounded-lg transition-all duration-200 bg-transparent"
+            >
+              Create account
             </Button>
           </div>
         </CardContent>
