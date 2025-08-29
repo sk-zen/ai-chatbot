@@ -103,17 +103,28 @@ serve(async (req) => {
       history: chatHistory, // Use the prepared chatHistory
     })
 
-    const result = await chat.sendMessage(message)
-    const response = await result.response
-    const text = response.text()
+    const result = await chat.sendMessageStream(message)
 
-    // 3. Save the model's response
-    await supabase.from('messages').insert([
-      { conversation_id, role: 'model', content: text },
-    ])
+    const stream = new ReadableStream({
+      async start(controller) {
+        let fullContent = ''
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text()
+          controller.enqueue(new TextEncoder().encode(chunkText))
+          fullContent += chunkText
+        }
 
-    return new Response(JSON.stringify({ text }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        // Save the full response after streaming is complete
+        await supabase.from('messages').insert([
+          { conversation_id, role: 'model', content: fullContent },
+        ])
+
+        controller.close()
+      },
+    })
+
+    return new Response(stream, {
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

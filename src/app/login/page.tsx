@@ -48,60 +48,62 @@ export default function LoginPage() {
           <p className="text-slate-600 text-center text-sm">Sign in to your account to continue</p>
         </CardHeader>
         <CardContent className="space-y-6 px-8 pb-8">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-              Email address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
-              placeholder="Enter your email"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
-              placeholder="Enter your password"
-            />
-          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                Email address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11 border-slate-200 bg-white/50 focus:border-slate-400 focus:ring-slate-400/20 transition-all duration-300 hover:border-slate-300"
+                placeholder="Enter your password"
+              />
+            </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm text-center">{error}</p>
-            </div>
-          )}
-          {message && ( // Display success message
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <p className="text-green-700 text-sm text-center">{message}</p>
-            </div>
-          )}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+                <p className="text-red-700 text-sm text-center">{error}</p>
+              </div>
+            )}
+            {message && ( // Display success message
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-4">
+                <p className="text-green-700 text-sm text-center">{message}</p>
+              </div>
+            )}
 
-          <div className="space-y-3 pt-2">
-            <Button
-              onClick={handleLogin}
-              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-slate-900/25 cursor-pointer"
-            >
-              Sign in
-            </Button>
-            <div className="text-center"> {/* Added div for link */}
-              <p className="text-sm text-slate-600">
-                Don't have an account?{" "}
-                <Link href="/signup" className="text-slate-900 hover:text-slate-700 font-medium transition-colors cursor-pointer">
-                  Sign up
-                </Link>
-              </p>
+            <div className="space-y-3 pt-6">
+              <Button
+                type="submit"
+                className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-slate-900/25 cursor-pointer"
+              >
+                Sign in
+              </Button>
+              <div className="text-center"> {/* Added div for link */}
+                <p className="text-sm text-slate-600">
+                  Don't have an account?{" "}
+                  <Link href="/signup" className="text-slate-900 hover:text-slate-700 font-medium transition-colors cursor-pointer">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
             </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
     </div>

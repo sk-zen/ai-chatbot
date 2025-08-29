@@ -4,6 +4,7 @@ import type { FormEvent } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils";
 
 interface PromptFormProps {
   input: string
@@ -31,7 +32,12 @@ export function PromptForm({ input, setInput, handleSubmit, loading }: PromptFor
       <Button
         type="submit"
         disabled={loading || !input.trim()}
-        className="h-12 w-12 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:hover:bg-slate-300 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 border-0 flex-shrink-0 cursor-pointer" // Added cursor-pointer
+        className={cn(
+          "h-12 w-12 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 border-0 flex-shrink-0 cursor-pointer",
+          loading || !input.trim()
+            ? "bg-slate-300 text-white cursor-not-allowed"
+            : "bg-slate-900 hover:bg-slate-800 text-white"
+        )}
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
       </Button>

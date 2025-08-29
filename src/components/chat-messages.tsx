@@ -4,7 +4,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { Bot } from "lucide-react"
 
+import ReactMarkdown from 'react-markdown';
+
 interface Message {
+  id: string;
   role: "user" | "model"
   content: string
 }
@@ -30,9 +33,9 @@ export function ChatMessages({ messages, loading, user }: ChatMessagesProps) {
 
   return (
     <div className="space-y-6 py-6 px-4">
-      {messages.map((msg, i) => (
+      {messages.map((msg) => (
         <div
-          key={i}
+          key={msg.id}
           className={cn("flex items-start gap-3 group", msg.role === "user" ? "justify-end" : "justify-start")}
         >
           {msg.role === "model" && (
@@ -52,7 +55,13 @@ export function ChatMessages({ messages, loading, user }: ChatMessagesProps) {
                 : "bg-white border border-slate-200/60 text-slate-700 rounded-2xl rounded-tl-md",
             )}
           >
-            <p className="text-balance">{msg.content}</p>
+            <ReactMarkdown
+              components={{
+                div: ({ node, ...props }) => <div className="prose" {...props} />,
+              }}
+            >
+              {msg.content}
+            </ReactMarkdown>
           </div>
           {msg.role === "user" && (
             <div className="flex-shrink-0">

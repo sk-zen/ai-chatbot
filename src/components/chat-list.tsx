@@ -38,7 +38,7 @@ export function ChatList({ conversations, onSelectConversation, onDeleteConversa
           {!isCollapsed && ( // Hide text when collapsed
             <div>
               <p className="text-sm font-medium text-gray-800">
-                {conversation.title || `Chat from ${new Date(conversation.created_at).toLocaleDateString()}`}
+                {conversation.title || "New Conversation"}
               </p>
               <p className="text-xs text-gray-500 mt-1">{new Date(conversation.created_at).toLocaleTimeString()}</p>
             </div>

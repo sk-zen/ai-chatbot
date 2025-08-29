@@ -7,7 +7,10 @@ import { Sidebar } from '@/components/sidebar'
 import { Chat } from '@/components/chat'
 // Removed Menu and Button imports as they will be in Chat's Header
 
+import { v4 as uuidv4 } from 'uuid';
+
 interface Message {
+  id: string;
   role: 'user' | 'model';
   content: string;
 }
@@ -108,7 +111,7 @@ export default function Home() {
         if (error) {
           console.error('Error fetching messages:', error)
         } else {
-          setMessages(data as Message[])
+          setMessages(data.map((msg) => ({ ...msg, id: uuidv4() })) as Message[])
         }
       }
       fetchMessages()
@@ -126,27 +129,55 @@ export default function Home() {
     e.preventDefault()
     if (!input.trim() || !currentConversationId) return
 
-    const userMessage: Message = { role: 'user', content: input }
+    const userMessage: Message = { id: uuidv4(), role: 'user', content: input }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { conversation_id: currentConversationId, message: input },
-      })
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+          'apikey': `${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ conversation_id: currentConversationId, message: input }),
+      });
 
-      if (error) {
-        throw error
+      if (!response.body) {
+        throw new Error('No response body')
       }
 
-      const modelMessage: Message = { role: 'model', content: data.text }
-      setMessages((prev) => [...prev, modelMessage])
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let done = false;
+      let content = "";
+
+      setMessages((prev) => [...prev, { id: uuidv4(), role: 'model', content: '' }]);
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        const chunk = decoder.decode(value, { stream: !done });
+        content += chunk;
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage && lastMessage.role === 'model') {
+            lastMessage.content = content;
+          }
+          return newMessages;
+        });
+      }
+
+      setLoading(false)
+
     } catch (error) {
       console.error('Error invoking function:', error)
       const errorMessage: Message = { role: 'model', content: 'Sorry, something went wrong.' }
       setMessages((prev) => [...prev, errorMessage])
-    } finally {
       setLoading(false)
     }
   }
