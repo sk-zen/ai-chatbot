@@ -5,12 +5,8 @@ import { cn } from "@/lib/utils"
 import { Bot } from "lucide-react"
 
 import ReactMarkdown from 'react-markdown';
-
-interface Message {
-  id: string;
-  role: "user" | "model"
-  content: string
-}
+// This is a no-op change to force TypeScript to re-evaluate this file.
+import { Message } from "../types";
 
 interface ChatMessagesProps {
   messages: Message[]
@@ -57,7 +53,7 @@ export function ChatMessages({ messages, loading, user }: ChatMessagesProps) {
           >
             <ReactMarkdown
               components={{
-                div: ({ node, ...props }) => <div className="prose" {...props} />,
+                div: ({ node: _node, ...props }) => <div className="prose" {...props} />,
               }}
             >
               {msg.content}

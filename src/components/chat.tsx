@@ -10,10 +10,7 @@ import { FormEvent } from 'react'
 import { Menu } from 'lucide-react'; // Import Menu icon
 import { Button } from '@/components/ui/button'; // Import Button component
 
-interface Message {
-  role: 'user' | 'model';
-  content: string;
-}
+import { Message } from "../types";
 
 interface ChatProps {
   messages: Message[];

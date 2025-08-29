@@ -9,11 +9,7 @@ import { Chat } from '@/components/chat'
 
 import { v4 as uuidv4 } from 'uuid';
 
-interface Message {
-  id: string;
-  role: 'user' | 'model';
-  content: string;
-}
+import { Message } from "../types";
 
 interface Conversation {
   id: string;
@@ -64,7 +60,7 @@ export default function Home() {
         }
       }
     }
-  }, [user, conversations, currentConversationId, handleNewChat])
+  }, [user, conversations, currentConversationId])
 
   useEffect(() => {
     const getUser = async () => {
@@ -176,7 +172,7 @@ export default function Home() {
 
     } catch (error) {
       console.error('Error invoking function:', error)
-      const errorMessage: Message = { role: 'model', content: 'Sorry, something went wrong.' }
+      const errorMessage: Message = { id: uuidv4(), role: 'model', content: 'Sorry, something went wrong.' }
       setMessages((prev) => [...prev, errorMessage])
       setLoading(false)
     }
